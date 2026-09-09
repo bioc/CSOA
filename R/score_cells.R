@@ -16,13 +16,14 @@ scoreCellsCore <- function(geneSetExp,
                            overlapDF,
                            colStr = 'CSOA',
                            mtMethod = c('BY', 'BH'),
+                           adjustRanks = TRUE,
                            jaccardCutoff = NULL,
                            osMethod = c('log', 'minmax'),
                            pairFileName = NULL,
                            keepOverlapOrder = FALSE,
                            ...){
 
-    overlapDF <- processOverlaps(overlapDF, mtMethod,
+    overlapDF <- processOverlaps(overlapDF, mtMethod, adjustRanks,
                                  jaccardCutoff, osMethod, ...)
     if(!nrow(overlapDF)){
         warning('No significant overlaps were identified.',
@@ -98,6 +99,7 @@ scoreCells <- function(geneSetExp,
                        setPairs,
                        geneSetNames,
                        mtMethod = c('BY', 'BH'),
+                       adjustRanks = TRUE,
                        jaccardCutoff = NULL,
                        osMethod = c('log', 'minmax'),
                        pairFileTemplate = NULL,
@@ -116,7 +118,7 @@ scoreCells <- function(geneSetExp,
     scoreDFList <- lapply(seq_along(setPairs), function(i) {
         setOverlapDF <- overlapSlice(overlapDF, setPairs[[i]])
         scoreDF <- scoreCellsCore(geneSetExp, setOverlapDF, geneSetNames[i],
-                                  mtMethod, jaccardCutoff, osMethod,
+                                  mtMethod, adjustRanks, jaccardCutoff, osMethod,
                                   pairFileName[i], keepOverlapOrder, ...)
         return(scoreDF)
     })

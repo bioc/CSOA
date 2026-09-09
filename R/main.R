@@ -43,6 +43,7 @@ runCSOA <- function(scObj,
                     geneSets,
                     percentile = 90,
                     mtMethod = c('BY', 'BH'),
+                    adjustRanks = TRUE,
                     jaccardCutoff = NULL,
                     osMethod = c('log', 'minmax'),
                     overlapFileName = NULL,
@@ -65,8 +66,8 @@ runCSOA <- function(scObj,
     overlapDF <- generateOverlaps(geneSetExp, percentile, pairs,
                                   overlapFileName)
     scoreDF <- scoreCells(geneSetExp, overlapDF, setPairs, names(geneSets),
-                          mtMethod, jaccardCutoff, osMethod, pairFileTemplate,
-                          keepOverlapOrder, ...)
+                          mtMethod, adjustRanks, jaccardCutoff, osMethod,
+                          pairFileTemplate, keepOverlapOrder, ...)
     return(attachCellScores(scObj, scoreDF))
 }
 

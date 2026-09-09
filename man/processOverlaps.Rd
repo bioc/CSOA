@@ -7,6 +7,7 @@
 processOverlaps(
   overlapDF,
   mtMethod = c("BY", "BH"),
+  adjustRanks = TRUE,
   jaccardCutoff = NULL,
   osMethod = c("log", "minmax"),
   ...
@@ -17,6 +18,8 @@ processOverlaps(
 
 \item{mtMethod}{Multiple testing correction method. Choose between
 Benjamini-Yekutieli ('BY') and Benjamini-Hochberg('BH'). Default is 'BY'.}
+
+\item{adjustRanks}{Whether to adjust the ranks based on connectivity.}
 
 \item{jaccardCutoff}{A cutoff used in the filtering of edges with low
 Jaccard scores. If \code{NULL} (as default), no filtering of such edges

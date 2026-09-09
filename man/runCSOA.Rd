@@ -9,6 +9,7 @@ runCSOA(
   geneSets,
   percentile = 90,
   mtMethod = c("BY", "BH"),
+  adjustRanks = TRUE,
   jaccardCutoff = NULL,
   osMethod = c("log", "minmax"),
   overlapFileName = NULL,
@@ -28,6 +29,8 @@ at least two genes.}
 
 \item{mtMethod}{Multiple testing correction method. Choose between
 Benjamini-Yekutieli ('BY') and Benjamini-Hochberg('BH'). Default is 'BY'.}
+
+\item{adjustRanks}{Whether to adjust the ranks based on connectivity.}
 
 \item{jaccardCutoff}{A cutoff used in the filtering of edges with low
 Jaccard scores. If \code{NULL} (as default), no filtering of such edges

@@ -66,11 +66,11 @@ prefilterOverlaps <- function(overlapDF, mtMethod = c('BY', 'BH')){
 #' 1) adjusted p-value;
 #' 2) recorded-over-expected size ratio.
 #'
-#' 2. The preliminary ranks are replaced by \strong{connectivity-based ranks}
-#' (\code{pvalRank}, \code{ratioRank}). For each edge corresponding to an
-#' overlap, the p-value rank is replaced by the minimum p-value rank of the
-#' vertices neighboring the edge—genes with a significant cell set overlap
-#' with any of the two overlap genes. The ratio rank is replaced similarly.
+#' 2. If \code{adjustRanks} is set to \code{TRUE}, preliminary ranks are
+#' replaced by \strong{connectivity-based ranks} (\code{pvalRank},
+#' \code{ratioRank}). For each edge corresponding to an overlap, the p-value
+#' rank is replaced by the average of the minimum p-value ranks of the
+#' vertices neighboring the two genes. The ratio rank is replaced similarly.
 #'
 #' 3. A raw aggregate rank (\code{rawAggRank}) is computed as the average of
 #' \code{pvalRank} and \code{ratioRank}.
@@ -80,28 +80,32 @@ prefilterOverlaps <- function(overlapDF, mtMethod = c('BY', 'BH')){
 #'
 #'
 #' @param overlapDF An overlap data frame.
+#' @param adjustRanks Whether to adjust the ranks based on connectivity within
+#' the graph of overlaps.
 #'
 #' @return A data frame with ranked overlaps.
 #'
-#' @noRd
+#' @keywords internal
 #'
-rankOverlaps <- function(overlapDF){
+rankOverlaps <- function(overlapDF, adjustRanks = TRUE){
     if (!nrow(overlapDF))
         return(overlapDF)
+
     overlapDF <- overlapDF[order(overlapDF$pvalAdj), ]
     overlapDF$pvalRank <- rankFun(overlapDF$pvalAdj)
     overlapDF <- overlapDF[order(overlapDF$ratio,
                                  decreasing=TRUE), ]
     overlapDF$ratioRank <- rankFun(-overlapDF$ratio)
 
-    geneConn <- geneBestEdgeRank(overlapDF)
-    overlapDF$pvalRank <- (geneConn[overlapDF$gene1, 1] +
-                               geneConn[overlapDF$gene2, 1]) / 2
-    overlapDF$ratioRank <- (geneConn[overlapDF$gene1, 2] +
-                                geneConn[overlapDF$gene2, 2]) / 2
-    overlapDF$rawAggRank <- (overlapDF$pvalRank +
-                                 overlapDF$ratioRank) / 2
+    if (adjustRanks){
+        geneConn <- geneBestEdgeRank(overlapDF)
+        overlapDF$pvalRank <- (geneConn[overlapDF$gene1, 1] +
+                                   geneConn[overlapDF$gene2, 1]) / 2
+        overlapDF$ratioRank <- (geneConn[overlapDF$gene1, 2] +
+                                    geneConn[overlapDF$gene2, 2]) / 2
+    }
 
+    overlapDF$rawAggRank <- (overlapDF$pvalRank + overlapDF$ratioRank) / 2
     overlapDF$rank <- rankFun(overlapDF$rawAggRank)
     overlapDF <- overlapDF[order(overlapDF$rank), ]
     return(overlapDF)
@@ -245,8 +249,10 @@ scoreOverlaps <- function(overlapDF,
 #'
 #' If \code{jaccardCutoff} is not \code{NULL}, it also calls
 #' \code{breakWeakTies} between \code{filterOverlaps} and \code{scoreOverlaps}.
+#'
 #' @inheritParams prefilterOverlaps
-
+#' @inheritParams rankOverlaps
+#'
 #' @param overlapDF Overlap data frame.
 #' @param jaccardCutoff A cutoff used in the filtering of edges with low
 #' Jaccard scores. If \code{NULL} (as default), no filtering of such edges
@@ -271,13 +277,14 @@ scoreOverlaps <- function(overlapDF,
 #'
 processOverlaps <- function(overlapDF,
                             mtMethod = c('BY', 'BH'),
+                            adjustRanks = TRUE,
                             jaccardCutoff = NULL,
                             osMethod = c('log', 'minmax'),
                             ...){
     osMethod <- match.arg(osMethod)
 
     overlapDF <- prefilterOverlaps(overlapDF, mtMethod)
-    overlapDF <- rankOverlaps(overlapDF)
+    overlapDF <- rankOverlaps(overlapDF, adjustRanks)
     firstOutRawRank <- prepareFiltering(overlapDF)
     overlapDF <- filterOverlaps(overlapDF, firstOutRawRank)
     if (!is.null(jaccardCutoff)){
